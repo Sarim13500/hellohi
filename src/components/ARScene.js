@@ -18,38 +18,14 @@ const ARScene = () => {
         const geom = new THREE.BoxGeometry(20, 20, 20);
         const mtl = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const box = new THREE.Mesh(geom, mtl);
-        arjs.add(box, -0.72, 51.051);
 
-        arjs.fakeGps(-0.72, 51.05);
+        // Create the device orientation tracker
+        const deviceOrientationControls = new THREEx.DeviceOrientationControls(camera);
 
-        const rotationStep = 2 * Math.PI / 180;
+        // Change this to a location close to you (e.g. 0.001 degrees of latitude north of you)
+        arjs.add(box, 10.759166, 59.909562);
 
-
-        let mousedown = false, lastX =0;
-
-        window.addEventListener("mousedown", e=> {
-            mousedown = true;
-        });
-
-        window.addEventListener("mouseup", e=> {
-            mousedown = false;
-        });
-
-        window.addEventListener("mousemove", e=> {
-            if(!mousedown) return;
-            if(e.clientX < lastX) {
-                camera.rotation.y -= rotationStep;
-                if(camera.rotation.y < 0) {
-                    camera.rotation.y += 2 * Math.PI;
-                }
-            } else if (e.clientX > lastX) {
-                camera.rotation.y += rotationStep;
-                if(camera.rotation.y > 2 * Math.PI) {
-                    camera.rotation.y -= 2 * Math.PI;
-                }
-            }
-            lastX = e.clientX;
-        });
+        arjs.startGps();
 
         function render() {
             if (canvas.width != canvas.clientWidth || canvas.height != canvas.clientHeight) {
@@ -58,6 +34,10 @@ const ARScene = () => {
                 camera.aspect = aspect;
                 camera.updateProjectionMatrix();
             }
+
+            // Update the scene using the latest sensor readings
+            deviceOrientationControls.update();
+
             cam.update();
             renderer.render(scene, camera);
             requestAnimationFrame(render);
@@ -66,6 +46,9 @@ const ARScene = () => {
         render();
 
         return () => {
+            // Clean up code here
+            renderer.dispose();
+            // Remove event listeners if necessary
         };
     }, []);
 
